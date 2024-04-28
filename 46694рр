@@ -1,0 +1,103 @@
+using Xamarin.Forms;
+using Xamarin.Essentials;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+namespace MobileApp
+{
+    public partial class MainPage : ContentPage
+    {
+        MediaCapture videoCapture;
+        MediaCapture audioCapture;
+
+        public MainPage()
+        {
+            InitializeComponent();
+            SetupUI();
+        }
+
+        void SetupUI()
+        {
+            var recordVideoButton = new Button
+            {
+                Text = "Record Video",
+                BackgroundColor = Color.Green,
+                TextColor = Color.White
+            };
+            recordVideoButton.Clicked += RecordVideoButton_Clicked;
+
+            var recordAudioButton = new Button
+            {
+                Text = "Record Audio",
+                BackgroundColor = Color.Green,
+                TextColor = Color.White
+            };
+            recordAudioButton.Clicked += RecordAudioButton_Clicked;
+
+            var playButton = new Button
+            {
+                Text = "Play Recording",
+                BackgroundColor = Color.DarkBlue,
+                TextColor = Color.White
+            };
+            playButton.Clicked += PlayButton_Clicked;
+
+            var stackLayout = new StackLayout
+            {
+                Children = { recordVideoButton, recordAudioButton, playButton },
+                VerticalOptions = LayoutOptions.CenterAndExpand,
+                HorizontalOptions = LayoutOptions.CenterAndExpand,
+                BackgroundColor = Color.LightBlue
+            };
+
+            Content = stackLayout;
+        }
+
+        async void RecordVideoButton_Clicked(object sender, EventArgs e)
+        {
+            videoCapture = await MediaCapture.StartRecordAsync(MediaCapture.Video);
+        }
+
+        async void RecordAudioButton_Clicked(object sender, EventArgs e)
+        {
+            audioCapture = await MediaCapture.StartRecordAsync(MediaCapture.Audio);
+        }
+
+        async void PlayButton_Clicked(object sender, EventArgs e)
+        {
+            if (videoCapture != null)
+            {
+                await MediaCapture.StopRecordAsync(videoCapture);
+                var videoPath = videoCapture.FilePath;
+                var location = await Geolocation.GetLocationAsync();
+
+                var videoWithLocation = AddLocationToVideo(videoPath, location);
+
+                await Launcher.OpenAsync(new OpenFileRequest
+                {
+                    File = new ReadOnlyFile(videoWithLocation)
+                });
+            }
+
+            if (audioCapture != null)
+            {
+                await MediaCapture.StopRecordAsync(audioCapture);
+                var audioPath = audioCapture.FilePath;
+
+                var location = await Geolocation.GetLocationAsync();
+
+                await Launcher.OpenAsync(new OpenFileRequest
+                {
+                    File = new ReadOnlyFile(audioPath)
+                });
+            }
+        }
+
+        string AddLocationToVideo(string videoPath, Location location)
+        {
+            
+            return videoPath;
+        }
+    }
+}
